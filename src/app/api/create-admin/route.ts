@@ -14,11 +14,14 @@ export async function POST(request: NextRequest) {
     // Try to create the admin user
     const adminUser = await prisma.user.create({
       data: {
-        email: 'admin@georgies.com',
+        email: 'admin@georgiesrx.com',
         name: 'Admin User',
+        firstName: 'Admin',
+        lastName: 'User',
         hashedPassword,
-        role: 'ADMIN',
-        isActive: true,
+        role: 'admin',
+        isApproved: true,
+        approvalStatus: 'approved',
       },
     })
 
@@ -33,7 +36,7 @@ export async function POST(request: NextRequest) {
         role: adminUser.role
       },
       credentials: {
-        email: 'admin@georgies.com',
+        email: 'admin@georgiesrx.com',
         password: 'admin123'
       }
     })
@@ -47,7 +50,7 @@ export async function POST(request: NextRequest) {
         success: true, 
         message: 'Admin user already exists!',
         credentials: {
-          email: 'admin@georgies.com',
+          email: 'admin@georgiesrx.com',
           password: 'admin123'
         },
         note: 'You can login with the existing admin account'

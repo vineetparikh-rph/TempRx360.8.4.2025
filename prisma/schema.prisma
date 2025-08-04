@@ -62,6 +62,11 @@ model User {
   position      String?   // Job title/position
   requestReason String?   // Why they need access
   
+  // Password reset fields
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  mustChangePassword Boolean @default(false)
+  
   accounts      Account[]
   sessions      Session[]
   auditLogs     AuditLog[]

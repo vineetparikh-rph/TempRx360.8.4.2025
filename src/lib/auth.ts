@@ -39,7 +39,8 @@ export const authOptions: NextAuthOptions = {
 
           // Check if user is approved
           if (!user.isApproved || user.approvalStatus !== 'approved') {
-            throw new Error('ACCOUNT_PENDING_APPROVAL')
+            console.log('User not approved:', { isApproved: user.isApproved, status: user.approvalStatus })
+            return null
           }
 
           // Verify password

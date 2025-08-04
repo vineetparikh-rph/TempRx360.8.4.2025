@@ -53,3 +53,5 @@ check-db.js.bak
 .vscode/
 .idea/
 .zencoder/
+
+.vercel

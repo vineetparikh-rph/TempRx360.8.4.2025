@@ -14,9 +14,7 @@ const nextConfig: NextConfig = {
     });
     return config;
   },
-  experimental: {
-    serverComponentsExternalPackages: ['prisma'],
-  },
+  serverExternalPackages: ['prisma'],
 };
 
 export default nextConfig;

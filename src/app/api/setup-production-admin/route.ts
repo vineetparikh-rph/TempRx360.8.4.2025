@@ -8,10 +8,73 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🔧 Setting up production admin user...');
 
+    // First, ensure database is initialized
+    console.log('📊 Initializing database...');
+    try {
+      await prisma.$executeRaw`PRAGMA journal_mode=WAL;`;
+      await prisma.$executeRaw`PRAGMA synchronous=NORMAL;`;
+      await prisma.$executeRaw`PRAGMA cache_size=1000000;`;
+      await prisma.$executeRaw`PRAGMA foreign_keys=true;`;
+      await prisma.$executeRaw`PRAGMA temp_store=memory;`;
+    } catch (pragmaError) {
+      console.log('⚠️ PRAGMA commands failed (might not be SQLite):', pragmaError);
+    }
+
+    // Test database connection
+    try {
+      await prisma.$queryRaw`SELECT 1`;
+      console.log('✅ Database connection successful');
+    } catch (connectionError) {
+      console.error('❌ Database connection failed:', connectionError);
+      
+      // Try to create tables if they don't exist
+      console.log('🔨 Attempting to create database schema...');
+      try {
+        await prisma.$executeRaw`CREATE TABLE IF NOT EXISTS "User" (
+          "id" TEXT NOT NULL PRIMARY KEY,
+          "name" TEXT,
+          "email" TEXT NOT NULL UNIQUE,
+          "emailVerified" DATETIME,
+          "image" TEXT,
+          "hashedPassword" TEXT,
+          "role" TEXT NOT NULL DEFAULT 'technician',
+          "isApproved" BOOLEAN NOT NULL DEFAULT false,
+          "approvalStatus" TEXT NOT NULL DEFAULT 'pending',
+          "approvedBy" TEXT,
+          "approvedAt" DATETIME,
+          "rejectedReason" TEXT,
+          "firstName" TEXT,
+          "lastName" TEXT,
+          "phoneNumber" TEXT,
+          "organization" TEXT,
+          "position" TEXT,
+          "requestReason" TEXT,
+          "resetToken" TEXT,
+          "resetTokenExpiry" DATETIME,
+          "mustChangePassword" BOOLEAN NOT NULL DEFAULT false,
+          "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )`;
+        console.log('✅ User table created');
+      } catch (createError) {
+        console.error('❌ Failed to create tables:', createError);
+        return NextResponse.json({ 
+          error: 'Database initialization failed',
+          details: createError instanceof Error ? createError.message : 'Unknown error'
+        }, { status: 500 });
+      }
+    }
+
     // Check if admin already exists
-    let admin = await prisma.user.findUnique({
-      where: { email: 'admin@georgiesrx.com' }
-    });
+    let admin;
+    try {
+      admin = await prisma.user.findUnique({
+        where: { email: 'admin@georgiesrx.com' }
+      });
+    } catch (findError) {
+      console.log('⚠️ Could not find admin user, will create new one');
+      admin = null;
+    }
 
     const hashedPassword = await bcrypt.hash('admin123', 12);
 

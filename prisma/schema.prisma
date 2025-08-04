@@ -105,10 +105,37 @@ model Pharmacy {
   licenseNumber String?
   address       String?
   phone         String?
+  
+  // Enhanced identification fields
+  displayName   String?   // User-friendly display name
+  description   String?   // Brief description of the pharmacy
+  type          String?   // "retail", "hospital", "specialty", "clinic", etc.
+  location      String?   // Building/floor/room details
+  city          String?
+  state         String?
+  zipCode       String?
+  country       String    @default("USA")
+  
+  // Contact information
+  email         String?
+  fax           String?
+  website       String?
+  
+  // Operational details
+  isActive      Boolean   @default(true)
+  timezone      String    @default("America/New_York")
+  operatingHours String?  // JSON string or text description
+  
+  // Compliance and regulatory
+  deaNumber     String?   // DEA registration number
+  npiNumber     String?   // National Provider Identifier
+  ncpdpNumber   String?   // NCPDP provider ID
+  
   sensors       Sensor[]
   alerts        Alert[]
   policies      TemperaturePolicy[]
   createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
   
   // Many-to-many relationship with users
   userPharmacies UserPharmacy[]

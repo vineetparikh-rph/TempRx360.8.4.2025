@@ -25,9 +25,19 @@ interface Pharmacy {
   id: string;
   name: string;
   code: string;
-  address: string;
-  phone: string;
-  licenseNumber: string;
+  displayName?: string;
+  description?: string;
+  type?: string;
+  location?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  phone?: string;
+  email?: string;
+  licenseNumber?: string;
+  operatingHours?: string;
+  isActive: boolean;
   userCount: number;
   sensorCount: number;
   activeAlerts: number;
@@ -230,25 +240,54 @@ export default function PharmaciesPage() {
                 <div className="flex items-center space-x-2">
                   {getStatusIcon(pharmacy.status)}
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white">{pharmacy.name}</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{pharmacy.code}</p>
+                    <h3 className="font-semibold text-gray-900 dark:text-white">
+                      {pharmacy.displayName || pharmacy.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {pharmacy.code} • {pharmacy.type || 'Unknown Type'}
+                    </p>
                   </div>
                 </div>
                 <div className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(pharmacy.status)}`}>
-                  {pharmacy.status.toUpperCase()}
+                  {pharmacy.isActive ? 'ACTIVE' : 'INACTIVE'}
                 </div>
               </div>
 
+              {/* Description */}
+              {pharmacy.description && (
+                <div className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  {pharmacy.description}
+                </div>
+              )}
+
               {/* Contact Info */}
               <div className="space-y-2 mb-4">
-                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  <span className="truncate">{pharmacy.address}</span>
-                </div>
-                <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                  <Phone className="h-4 w-4 mr-2" />
-                  <span>{pharmacy.phone}</span>
-                </div>
+                {pharmacy.location && (
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <Building2 className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{pharmacy.location}</span>
+                  </div>
+                )}
+                {(pharmacy.city || pharmacy.address) && (
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">
+                      {pharmacy.address || `${pharmacy.city}, ${pharmacy.state} ${pharmacy.zipCode}`}
+                    </span>
+                  </div>
+                )}
+                {pharmacy.phone && (
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <Phone className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span>{pharmacy.phone}</span>
+                  </div>
+                )}
+                {pharmacy.email && (
+                  <div className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                    <Mail className="h-4 w-4 mr-2 flex-shrink-0" />
+                    <span className="truncate">{pharmacy.email}</span>
+                  </div>
+                )}
               </div>
 
               {/* Stats */}
@@ -269,9 +308,18 @@ export default function PharmaciesPage() {
                 </div>
               </div>
 
-              {/* License Info */}
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-4">
-                License: {pharmacy.licenseNumber}
+              {/* Additional Info */}
+              <div className="space-y-1 mb-4">
+                {pharmacy.licenseNumber && (
+                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                    License: {pharmacy.licenseNumber}
+                  </div>
+                )}
+                {pharmacy.operatingHours && (
+                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                    Hours: {pharmacy.operatingHours}
+                  </div>
+                )}
               </div>
 
               {/* Actions */}

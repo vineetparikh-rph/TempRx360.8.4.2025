@@ -7,69 +7,73 @@ export async function POST() {
   try {
     console.log('🏥 Populating pharmacy information...');
 
-    // Enhanced pharmacy data with descriptive information
+    // Real Georgies pharmacy information
     const pharmacyUpdates = [
       {
         code: 'family',
         updates: {
-          displayName: 'Family Medicine Pharmacy',
-          description: 'Primary care pharmacy serving family medicine patients',
-          type: 'clinic',
-          location: 'Family Medicine Building - Ground Floor',
-          city: 'Medical Center',
+          displayName: 'Georgies Family Pharmacy',
+          description: 'Full-service family pharmacy providing prescription services, vaccinations, and health consultations',
+          type: 'retail',
+          location: '332 W. St. Georges Avenue',
+          address: '332 W. St. Georges Avenue',
+          city: 'Linden',
           state: 'NJ',
-          zipCode: '08901',
-          email: 'family.pharmacy@georgiesrx.com',
-          phone: '(732) 555-0101',
-          operatingHours: 'Mon-Fri: 8:00 AM - 6:00 PM, Sat: 9:00 AM - 2:00 PM',
+          zipCode: '07036-5638',
+          phone: '(908) 925-4567',
+          fax: '(908) 925-8090',
+          operatingHours: 'Mon-Fri: 9:00 AM - 7:00 PM, Sat: 9:00 AM - 5:00 PM, Sun: Closed',
           isActive: true
         }
       },
       {
         code: 'specialty',
         updates: {
-          displayName: 'Specialty Care Pharmacy',
-          description: 'Specialized medications for complex conditions and rare diseases',
+          displayName: 'Georgies Specialty Pharmacy',
+          description: 'Specialty medications, compounding, clinical services, and patient education',
           type: 'specialty',
-          location: 'Specialty Care Center - 2nd Floor',
-          city: 'Medical Center',
+          location: '521 N Wood Avenue',
+          address: '521 N Wood Avenue',
+          city: 'Linden',
           state: 'NJ',
-          zipCode: '08901',
-          email: 'specialty.pharmacy@georgiesrx.com',
-          phone: '(732) 555-0102',
-          operatingHours: 'Mon-Fri: 9:00 AM - 5:00 PM',
+          zipCode: '07036-4146',
+          phone: '(908) 925-4566',
+          fax: '(908) 345-5030',
+          operatingHours: 'Mon-Fri: 9:30 AM - 6:00 PM, Sat: Closed, Sun: Closed',
           isActive: true
         }
       },
       {
         code: 'parlin',
         updates: {
-          displayName: 'Parlin Community Pharmacy',
-          description: 'Community pharmacy serving Parlin and surrounding areas',
+          displayName: 'Georgies Parlin Pharmacy',
+          description: 'Full pharmacy services, immunizations, blood pressure monitoring, and diabetes care',
           type: 'retail',
-          location: 'Parlin Shopping Center',
+          location: '499 Ernston Road',
+          address: '499 Ernston Road',
           city: 'Parlin',
           state: 'NJ',
-          zipCode: '08859',
-          email: 'parlin.pharmacy@georgiesrx.com',
-          phone: '(732) 555-0103',
-          operatingHours: 'Mon-Sat: 9:00 AM - 9:00 PM, Sun: 10:00 AM - 6:00 PM',
+          zipCode: '08859-1406',
+          phone: '(732) 952-3022',
+          fax: '(407) 641-8434',
+          operatingHours: 'Mon-Fri: 9:00 AM - 7:00 PM, Sat: 9:00 AM - 5:00 PM, Sun: Closed',
           isActive: true
         }
       },
       {
         code: 'outpatient',
         updates: {
-          displayName: 'Outpatient Services Pharmacy',
-          description: 'Hospital outpatient pharmacy for discharged patients and outpatient procedures',
+          displayName: 'Georgies Outpatient Pharmacy',
+          description: 'Hospital outpatient services, discharge medications, clinical consultations, and medication reviews',
           type: 'hospital',
-          location: 'Main Hospital - Outpatient Wing, 1st Floor',
-          city: 'Medical Center',
+          location: '6 Earlin Avenue, Suite 130',
+          address: '6 Earlin Avenue, Suite 130',
+          city: 'Browns Mills',
           state: 'NJ',
-          zipCode: '08901',
-          email: 'outpatient.pharmacy@georgiesrx.com',
-          phone: '(732) 555-0104',
-          operatingHours: 'Mon-Sun: 7:00 AM - 11:00 PM',
+          zipCode: '08015-1768',
+          phone: '(609) 726-5800',
+          fax: '(609) 726-5810',
+          operatingHours: 'Mon-Fri: 9:30 AM - 6:00 PM, Sat: 10:00 AM - 2:00 PM, Sun: Closed',
           isActive: true
         }
       }

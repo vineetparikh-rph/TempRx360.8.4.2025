@@ -132,9 +132,13 @@ prisma/
 
 ## 🚀 **Deployment**
 
-### Vercel (Recommended)
+### One-Click Deploy to Vercel
 
-1. **Push to GitHub**
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vineetparikh-rph/TempRx360.8.4.2025&env=DATABASE_URL,NEXTAUTH_SECRET,NEXTAUTH_URL&envDescription=Required%20environment%20variables%20for%20the%20pharmacy%20admin%20dashboard&envLink=https://github.com/vineetparikh-rph/TempRx360.8.4.2025#environment-variables)
+
+### Manual Vercel Deployment
+
+1. **Push to GitHub** ✅ (Already done!)
 2. **Connect to Vercel**
 3. **Configure environment variables**
 4. **Deploy automatically**

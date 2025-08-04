@@ -16,8 +16,12 @@ export async function POST(request: NextRequest) {
     try {
       const userCount = await prisma.user.count()
       console.log(`📊 Current user count: ${userCount}`)
+      
+      if (userCount > 0) {
+        console.log('⚠️ Users already exist, will update existing or create new ones')
+      }
     } catch (error) {
-      console.log('⚠️ User table might not exist, will try to create users anyway')
+      console.log('⚠️ User table might not exist, Prisma will create it automatically')
     }
 
     // Create admin user

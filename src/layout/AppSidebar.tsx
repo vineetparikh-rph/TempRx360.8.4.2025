@@ -138,6 +138,7 @@ export default function AppSidebar() {
           title: 'User Management',
           icon: <Users className="h-4 w-4" />,
           children: [
+            { title: 'User Approvals', href: '/admin/user-approvals', icon: <CheckCircle className="h-4 w-4" /> },
             { title: 'All Users', href: '/admin/analytics/users', icon: <Users className="h-4 w-4" /> },
             { title: 'Add User', href: '/admin/users/add', icon: <UserPlus className="h-4 w-4" /> },
             { title: 'User Profiles', href: '/profile', icon: <User className="h-4 w-4" /> }

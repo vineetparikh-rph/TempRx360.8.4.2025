@@ -31,7 +31,11 @@ export default function SignInForm() {
       });
 
       if (result?.error) {
-        setError('Invalid credentials');
+        if (result.error.includes('ACCOUNT_PENDING_APPROVAL')) {
+          setError('Your account is pending approval. Please wait for an administrator to approve your registration.');
+        } else {
+          setError('Invalid credentials');
+        }
       } else {
         router.push('/');
       }

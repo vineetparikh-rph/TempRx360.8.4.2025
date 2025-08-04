@@ -37,6 +37,11 @@ export const authOptions: NextAuthOptions = {
             return null
           }
 
+          // Check if user is approved
+          if (!user.isApproved || user.approvalStatus !== 'approved') {
+            throw new Error('ACCOUNT_PENDING_APPROVAL')
+          }
+
           // Verify password
           const isPasswordValid = await bcrypt.compare(credentials.password, user.hashedPassword)
           if (!isPasswordValid) {

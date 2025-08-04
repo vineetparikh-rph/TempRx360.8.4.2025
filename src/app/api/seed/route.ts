@@ -8,7 +8,20 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🌱 Starting database seed...')
 
+    // First, let's check if we can connect to the database
+    await prisma.$connect()
+    console.log('✅ Database connected successfully')
+
+    // Check if tables exist by trying to count users
+    try {
+      const userCount = await prisma.user.count()
+      console.log(`📊 Current user count: ${userCount}`)
+    } catch (error) {
+      console.log('⚠️ User table might not exist, will try to create users anyway')
+    }
+
     // Create admin user
+    console.log('🔐 Creating admin user...')
     const hashedPassword = await bcrypt.hash('admin123', 12)
     
     const adminUser = await prisma.user.upsert({
@@ -200,10 +213,23 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Seed failed:', error)
+    
+    // More detailed error information
+    let errorMessage = 'Unknown error'
+    let errorDetails = ''
+    
+    if (error instanceof Error) {
+      errorMessage = error.message
+      errorDetails = error.stack || ''
+    }
+    
+    console.error('Error details:', errorDetails)
+    
     return NextResponse.json({ 
       success: false, 
       error: 'Failed to seed database',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: errorMessage,
+      fullError: errorDetails
     }, { status: 500 })
   } finally {
     await prisma.$disconnect()

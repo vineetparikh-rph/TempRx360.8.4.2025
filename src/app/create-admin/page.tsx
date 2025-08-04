@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function CreateAdminPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    document.title = "Create Admin - TempRx360";
+  }, []);
 
   const handleCreate = async () => {
     setIsCreating(true);

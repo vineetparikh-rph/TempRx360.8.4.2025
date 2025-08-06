@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@clerk/nextjs';
 import { ChevronDownIcon } from '@/icons';
 import { 
   BarChart3, 
@@ -40,7 +40,7 @@ interface MenuItem {
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
+  const { user } = useUser();
   const [expandedItems, setExpandedItems] = useState<string[]>(['Monitoring']);
 
   const toggleExpanded = (title: string) => {
@@ -160,7 +160,7 @@ export default function AppSidebar() {
   ];
 
   // Filter menu items based on user role
-  const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'ADMIN';
+  const isAdmin = user?.publicMetadata?.role === 'admin' || user?.publicMetadata?.role === 'ADMIN';
 
   const filterMenuItems = (items: MenuItem[]): MenuItem[] => {
     return items.filter(item => {
@@ -283,7 +283,7 @@ export default function AppSidebar() {
             <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
               {isAdmin ? 'Admin Panel' : 'Pharmacy User'}
             </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{session?.user?.email}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.emailAddresses[0]?.emailAddress}</p>
           </div>
         </div>
       </div>

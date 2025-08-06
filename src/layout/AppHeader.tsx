@@ -1,6 +1,6 @@
 "use client";
 import { ThemeToggleButton } from "@/components/common/ThemeToggleButton";
-import UserDropdown from "@/components/header/UserDropdown";
+import { UserButton } from "@clerk/nextjs";
 import { useSidebar } from "@/context/SidebarContext";
 import Image from "next/image";
 import Link from "next/link";
@@ -165,7 +165,15 @@ const AppHeader: React.FC = () => {
             {/* <!-- Dark Mode Toggler --> */}
           </div>
           {/* <!-- User Area --> */}
-          <UserDropdown /> 
+          <UserButton 
+            appearance={{
+              elements: {
+                avatarBox: "w-10 h-10",
+                userButtonPopoverCard: "shadow-lg border border-gray-200",
+                userButtonPopoverActionButton: "hover:bg-gray-50"
+              }
+            }}
+          /> 
     
         </div>
       </div>

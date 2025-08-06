@@ -9,9 +9,9 @@ export async function POST(request: NextRequest) {
     
     console.log('🔍 Manual signin attempt for:', email);
     
-    // Find user in database
+    // Find user in database (case-insensitive)
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.toLowerCase().trim() },
       include: {
         userPharmacies: {
           include: { pharmacy: true }

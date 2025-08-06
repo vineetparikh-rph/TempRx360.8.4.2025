@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@clerk/nextjs';
 import { AlertTriangle, Thermometer, RefrigeratorIcon, Clock, Calendar, Building2, Wifi, WifiOff, Battery } from 'lucide-react';
 
 interface Sensor {
@@ -28,7 +28,7 @@ interface UserPharmacy {
 }
 
 export default function PharmacyTemperatureDashboard() {
-  const { data: session } = useSession();
+  const { user, isLoaded } = useUser();
   const [selectedPharmacy, setSelectedPharmacy] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [sensors, setSensors] = useState<Sensor[]>([]);

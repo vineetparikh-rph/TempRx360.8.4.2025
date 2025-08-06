@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@clerk/nextjs';
 import {
   User,
   Mail,
@@ -38,7 +38,7 @@ interface UserInfo {
 }
 
 export default function UserInfoPage() {
-  const { data: session, update } = useSession();
+  const { user, isLoaded } = useUser();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);

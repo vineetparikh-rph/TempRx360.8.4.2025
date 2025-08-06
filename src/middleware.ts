@@ -16,7 +16,8 @@ export function middleware(request: NextRequest) {
     pathname === '/reset-password' ||
     pathname === '/signout' ||
     pathname === '/contact' ||
-    pathname === '/auth-test'
+    pathname === '/auth-test' ||
+    pathname === '/quick-login'
   ) {
     return NextResponse.next()
   }

@@ -90,7 +90,7 @@ export default function TemperatureMonitoringPage() {
       // Fetch from your existing API endpoints
       const [sensorsResponse, pharmaciesResponse] = await Promise.all([
         fetch('/api/sensors'),
-        fetch('/api/admin/pharmacies')
+        fetch('/api/pharmacies')  // Use the general pharmacies API instead of admin-only
       ]);
 
       if (!sensorsResponse.ok || !pharmaciesResponse.ok) {

@@ -35,85 +35,120 @@ export async function GET() {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
-    // Get hubs from database
-    const dbHubs = await prisma.hub.findMany({
-      include: {
-        pharmacy: true,
-        sensors: true,
-        _count: {
-          select: {
-            sensors: true
-          }
-        }
-      },
+    // Get pharmacies for mapping
+    const pharmacies = await prisma.pharmacy.findMany({
       orderBy: { name: 'asc' }
     });
 
     // Get gateways from SensorPush API
     let gatewaysData = {};
+    let sensorsData = {};
     try {
       gatewaysData = await sensorPushAPI.getGateways();
+      sensorsData = await sensorPushAPI.getSensors();
     } catch (error) {
-      console.warn('Could not fetch SensorPush gateways:', error);
+      console.warn('Could not fetch SensorPush data:', error);
+      return NextResponse.json({ error: 'Failed to fetch SensorPush data: ' + error.message }, { status: 500 });
     }
 
-    // Get sensor assignments to count connected sensors
-    const sensorAssignments = await prisma.sensorAssignment.findMany({
-      where: { isActive: true },
-      include: { pharmacy: true }
-    });
-
-    const pharmacies = await prisma.pharmacy.findMany({
-      orderBy: { name: 'asc' }
-    });
-
-    // Merge database hubs with SensorPush gateway data
-    const enhancedHubs = dbHubs.map(hub => {
-      // Try to find matching gateway data
-      const gatewayEntry = Object.entries(gatewaysData).find(([gatewayId, gateway]: [string, any]) => {
-        return gateway.name === hub.name || gatewayId === hub.serialNumber;
-      });
-
-      const gatewayData = gatewayEntry ? gatewayEntry[1] : null;
-      const gatewayId = gatewayEntry ? gatewayEntry[0] : hub.serialNumber;
+    // Create hubs from real SensorPush gateways
+    const realHubs = Object.entries(gatewaysData).map(([gatewayId, gateway]: [string, any]) => {
+      // Determine pharmacy based on gateway name
+      let pharmacy = null;
+      const gatewayName = gateway.name;
+      
+      if (gatewayName.includes('GFP')) {
+        pharmacy = pharmacies.find(p => p.code === 'family');
+      } else if (gatewayName.includes('GSP')) {
+        pharmacy = pharmacies.find(p => p.code === 'specialty');
+      } else if (gatewayName.includes('GPP')) {
+        pharmacy = pharmacies.find(p => p.code === 'parlin');
+      } else if (gatewayName.includes('GOP')) {
+        pharmacy = pharmacies.find(p => p.code === 'outpatient');
+      }
 
       // Determine status based on last seen
       let status = 'offline';
-      if (gatewayData?.last_seen) {
-        const lastSeenTime = new Date(gatewayData.last_seen);
+      if (gateway.last_seen) {
+        const lastSeenTime = new Date(gateway.last_seen);
         const now = new Date();
         const minutesAgo = (now.getTime() - lastSeenTime.getTime()) / (1000 * 60);
 
-        if (minutesAgo < 5) {
+        if (minutesAgo < 10) {
           status = 'online';
-        } else if (minutesAgo < 30) {
+        } else if (minutesAgo < 60) {
           status = 'warning';
         }
       }
 
-      // Count connected sensors for this hub's pharmacy
-      const connectedSensors = hub.pharmacyId
-        ? sensorAssignments.filter(sa => sa.pharmacyId === hub.pharmacyId).length
-        : 0;
+      // Count connected sensors for this gateway's pharmacy
+      const connectedSensors = Object.values(sensorsData).filter((sensor: any) => {
+        const sensorName = sensor.name;
+        if (gatewayName.includes('GFP')) return sensorName.includes('GFP');
+        if (gatewayName.includes('GSP')) return sensorName.includes('GSP');
+        if (gatewayName.includes('GPP')) return sensorName.includes('GPP');
+        if (gatewayName.includes('GOP')) return sensorName.includes('GOP');
+        return false;
+      }).length;
+
+      // Extract signal strength from connected sensors
+      const pharmacySensors = Object.values(sensorsData).filter((sensor: any) => {
+        const sensorName = sensor.name;
+        if (gatewayName.includes('GFP')) return sensorName.includes('GFP');
+        if (gatewayName.includes('GSP')) return sensorName.includes('GSP');
+        if (gatewayName.includes('GPP')) return sensorName.includes('GPP');
+        if (gatewayName.includes('GOP')) return sensorName.includes('GOP');
+        return false;
+      });
+
+      const avgSignal = pharmacySensors.length > 0 
+        ? Math.round(pharmacySensors.reduce((sum: number, sensor: any) => sum + (sensor.rssi || -70), 0) / pharmacySensors.length)
+        : -70;
+
+      // Determine location based on sensor types
+      let location = 'Main Storage';
+      if (connectedSensors > 3) location = 'Multiple Areas';
+      else if (pharmacySensors.some((s: any) => s.name.includes('Freezer'))) location = 'Cold Storage';
+      else if (pharmacySensors.some((s: any) => s.name.includes('Pharmacy'))) location = 'Pharmacy Area';
 
       return {
-        ...hub,
+        id: gatewayId,
+        name: gatewayName,
+        serialNumber: gatewayId.substring(0, 8), // Use first 8 chars of gateway ID
+        model: 'SensorPush Gateway',
+        pharmacyName: pharmacy?.name || 'Unknown Pharmacy',
+        pharmacyId: pharmacy?.id || null,
         status,
-        lastSeen: gatewayData?.last_seen || new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString(),
+        lastSeen: gateway.last_seen,
+        signalStrength: Math.abs(avgSignal), // Convert to positive percentage-like value
+        batteryLevel: null, // Gateways don't have batteries
         connectedSensors,
-        signalStrength: generateRealisticSignal(gatewayId),
-        uptime: generateUptime(gatewayId),
-        firmwareVersion: generateFirmwareVersion(gatewayId),
-        macAddress: hub.macAddress || gatewayId
+        maxSensors: 50, // SensorPush gateways can handle many sensors
+        firmwareVersion: gateway.version || 'Unknown',
+        ipAddress: null, // Not provided by SensorPush API
+        location,
+        uptime: null, // Calculate if needed
+        macAddress: null, // Not provided by SensorPush API
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        pharmacy
       };
     });
 
+    const onlineCount = realHubs.filter(h => h.status === 'online').length;
+    const offlineCount = realHubs.filter(h => h.status === 'offline').length;
+    const totalSensors = realHubs.reduce((sum, h) => sum + h.connectedSensors, 0);
+
     return NextResponse.json({
-      hubs: enhancedHubs,
+      hubs: realHubs,
       pharmacies,
-      totalHubs: enhancedHubs.length,
-      onlineHubs: enhancedHubs.filter(h => h.status === 'online').length,
-      offlineHubs: enhancedHubs.filter(h => h.status === 'offline').length
+      totalHubs: realHubs.length,
+      onlineHubs: onlineCount,
+      offlineHubs: offlineCount,
+      totalSensors,
+      rawGatewayData: gatewaysData, // For debugging
+      rawSensorData: sensorsData // For debugging
     });
 
   } catch (error) {

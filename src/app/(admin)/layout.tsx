@@ -1,6 +1,9 @@
 "use client";
 
 import React from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { SidebarProvider } from "@/context/SidebarContext";
 import AppSidebar from "@/layout/AppSidebar";
 import AppHeader from "@/layout/AppHeader";
@@ -12,6 +15,37 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "loading") return; // Still loading
+
+    if (!session) {
+      router.push("/signin");
+      return;
+    }
+
+    if (!session.user.isApproved) {
+      router.push("/signin?error=not-approved");
+      return;
+    }
+  }, [session, status, router]);
+
+  // Show loading while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-white dark:bg-gray-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // Don't render anything if not authenticated
+  if (!session || !session.user.isApproved) {
+    return null;
+  }
+
   return (
     <PasswordChangeWrapper>
       <SidebarProvider>

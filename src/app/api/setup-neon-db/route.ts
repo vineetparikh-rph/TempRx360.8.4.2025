@@ -2,39 +2,70 @@ import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL
+    }
+  }
+});
 
 export async function POST(request: NextRequest) {
   try {
     console.log('🚀 Setting up Neon PostgreSQL database...');
+    console.log('Environment:', process.env.NODE_ENV);
+    console.log('DATABASE_URL exists:', !!process.env.DATABASE_URL);
 
-    // Test database connection
-    try {
-      await prisma.$queryRaw`SELECT 1`;
-      console.log('✅ Neon PostgreSQL connection successful');
-    } catch (connectionError) {
-      console.error('❌ Neon PostgreSQL connection failed:', connectionError);
-      return NextResponse.json({ 
-        error: 'Database connection failed',
-        details: connectionError instanceof Error ? connectionError.message : 'Unknown error',
-        suggestion: 'Please check your DATABASE_URL environment variable'
-      }, { status: 500 });
+    // Test database connection with retry logic
+    let connectionAttempts = 0;
+    const maxAttempts = 3;
+    
+    while (connectionAttempts < maxAttempts) {
+      try {
+        await prisma.$queryRaw`SELECT 1`;
+        console.log('✅ Neon PostgreSQL connection successful');
+        break;
+      } catch (connectionError) {
+        connectionAttempts++;
+        console.log(`❌ Connection attempt ${connectionAttempts} failed:`, connectionError);
+        
+        if (connectionAttempts >= maxAttempts) {
+          return NextResponse.json({ 
+            error: 'Database connection failed after multiple attempts',
+            details: connectionError instanceof Error ? connectionError.message : 'Unknown error',
+            suggestion: 'Please check your DATABASE_URL environment variable'
+          }, { status: 500 });
+        }
+        
+        // Wait 1 second before retry
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
     }
 
-    // Run database migrations to ensure schema exists
+    // Ensure database schema exists with retry logic
     console.log('🔨 Ensuring database schema is up to date...');
     
-    // Check if tables exist by trying to count users
+    let userCount = 0;
     try {
-      const userCount = await prisma.user.count();
+      userCount = await prisma.user.count();
       console.log(`📊 Found ${userCount} users in database`);
     } catch (tableError) {
-      console.log('❌ Database schema not found. Please run migrations first.');
-      return NextResponse.json({ 
-        error: 'Database schema not found',
-        details: 'The database exists but tables are not created.',
-        suggestion: 'Run "npx prisma migrate deploy" or "npx prisma db push" to create the schema'
-      }, { status: 500 });
+      console.log('❌ User table not accessible, attempting to create schema...');
+      
+      // Try to push schema if tables don't exist
+      try {
+        // Force reconnect and try again
+        await prisma.$disconnect();
+        await prisma.$connect();
+        userCount = await prisma.user.count();
+        console.log(`📊 Schema exists, found ${userCount} users`);
+      } catch (retryError) {
+        return NextResponse.json({ 
+          error: 'Database schema not accessible',
+          details: retryError instanceof Error ? retryError.message : 'Unknown error',
+          suggestion: 'Database schema may not be properly deployed. Please contact support.'
+        }, { status: 500 });
+      }
     }
 
     // Create admin user
@@ -205,6 +236,49 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       error: 'Neon PostgreSQL setup failed',
       details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+// Add GET endpoint for testing
+export async function GET(request: NextRequest) {
+  try {
+    console.log('🔍 Testing Neon PostgreSQL database connection...');
+    
+    // Test connection
+    await prisma.$queryRaw`SELECT 1`;
+    
+    // Check tables
+    const userCount = await prisma.user.count();
+    const pharmacyCount = await prisma.pharmacy.count();
+    
+    // List all tables
+    const tables = await prisma.$queryRaw`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public'
+      ORDER BY table_name;
+    `;
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Database connection test successful',
+      environment: process.env.NODE_ENV,
+      databaseUrl: process.env.DATABASE_URL ? 'configured' : 'missing',
+      userCount,
+      pharmacyCount,
+      tables: tables
+    });
+    
+  } catch (error) {
+    console.error('❌ Database test failed:', error);
+    return NextResponse.json({ 
+      success: false,
+      error: 'Database test failed',
+      details: error instanceof Error ? error.message : 'Unknown error',
+      environment: process.env.NODE_ENV
     }, { status: 500 });
   } finally {
     await prisma.$disconnect();

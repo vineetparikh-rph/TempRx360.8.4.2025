@@ -29,8 +29,11 @@ export async function GET() {
     const session = await getServerSession(authOptions);
 
     if (!session?.user) {
+      console.log('Sensors API: No session found');
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
+
+    console.log(`Sensors API: User ${session.user.email} (${session.user.role}) requesting data`);
 
     // Get user's pharmacy assignments
     const userPharmacies = await prisma.userPharmacy.findMany({
@@ -38,12 +41,16 @@ export async function GET() {
       include: { pharmacy: true }
     });
 
-    const isAdmin = session.user.role === 'admin';
+    console.log(`Sensors API: User has ${userPharmacies.length} pharmacy assignments`);
+
+    const isAdmin = session.user.role === 'admin' || session.user.role === 'ADMIN';
+    console.log(`Sensors API: User is admin: ${isAdmin}`);
 
     // Get sensor assignments from database
     let sensorAssignments;
     if (isAdmin) {
       // Admin sees all sensor assignments
+      console.log('Sensors API: Admin user - fetching all sensor assignments');
       sensorAssignments = await prisma.sensorAssignment.findMany({
         where: { isActive: true },
         include: { pharmacy: true }
@@ -51,6 +58,7 @@ export async function GET() {
     } else {
       // Regular users see only sensors for their assigned pharmacies
       const pharmacyIds = userPharmacies.map(up => up.pharmacyId);
+      console.log(`Sensors API: Regular user - fetching sensors for pharmacy IDs: ${pharmacyIds.join(', ')}`);
       sensorAssignments = await prisma.sensorAssignment.findMany({
         where: {
           isActive: true,
@@ -60,15 +68,87 @@ export async function GET() {
       });
     }
 
+    console.log(`Sensors API: Found ${sensorAssignments.length} sensor assignments`);
+
+    // If no sensor assignments but user has pharmacy assignments, create fallback data
+    if (sensorAssignments.length === 0 && userPharmacies.length > 0) {
+      console.log('No sensor assignments found, but user has pharmacy assignments. Creating fallback data.');
+      
+      // Get all sensors and gateways from SensorPush API for fallback
+      try {
+        const [sensorsData, gatewaysData] = await Promise.all([
+          sensorPushAPI.getSensors(),
+          sensorPushAPI.getGateways()
+        ]);
+
+        // Create fallback sensor data for user's pharmacies
+        const fallbackSensors = Object.entries(sensorsData.sensors || {}).map(([sensorId, sensor]: [string, any]) => ({
+          id: sensorId,
+          name: sensor.name || `Sensor ${sensorId.slice(-4)}`,
+          location: `${userPharmacies[0].pharmacy.name} - Storage Area`,
+          currentTemp: sensor.last_temp || null,
+          humidity: sensor.last_humidity || null,
+          lastReading: sensor.last_seen ? new Date(sensor.last_seen * 1000).toISOString() : null,
+          status: sensor.active ? 'online' : 'offline',
+          battery: generateRealisticBattery(sensorId),
+          signal: generateRealisticSignal(sensorId),
+          pharmacyId: userPharmacies[0].pharmacyId,
+          pharmacyName: userPharmacies[0].pharmacy.name
+        }));
+
+        const fallbackGateways = Object.entries(gatewaysData.gateways || {}).map(([gatewayId, gateway]: [string, any]) => ({
+          id: gatewayId,
+          name: gateway.name || `Gateway ${gatewayId.slice(-4)}`,
+          status: gateway.last_seen ? 'online' : 'offline',
+          lastSeen: gateway.last_seen ? new Date(gateway.last_seen * 1000).toISOString() : null,
+          pharmacyId: userPharmacies[0].pharmacyId,
+          pharmacyName: userPharmacies[0].pharmacy.name
+        }));
+
+        return NextResponse.json({
+          sensors: fallbackSensors,
+          allGateways: fallbackGateways,
+          totalCount: fallbackSensors.length,
+          userPharmacies: userPharmacies.map(up => ({
+            id: up.pharmacy.id,
+            name: up.pharmacy.name,
+            code: up.pharmacy.code
+          })),
+          fallbackMode: true,
+          message: 'Using fallback data - no sensor assignments configured'
+        });
+
+      } catch (apiError) {
+        console.error('SensorPush API error in fallback mode:', apiError);
+        
+        // Return empty data with user pharmacy info
+        return NextResponse.json({
+          sensors: [],
+          allGateways: [],
+          totalCount: 0,
+          userPharmacies: userPharmacies.map(up => ({
+            id: up.pharmacy.id,
+            name: up.pharmacy.name,
+            code: up.pharmacy.code
+          })),
+          fallbackMode: true,
+          error: 'SensorPush API unavailable'
+        });
+      }
+    }
+
+    // If no sensor assignments and no pharmacy assignments
     if (sensorAssignments.length === 0) {
       return NextResponse.json({
         sensors: [],
+        allGateways: [],
         totalCount: 0,
         userPharmacies: userPharmacies.map(up => ({
           id: up.pharmacy.id,
           name: up.pharmacy.name,
           code: up.pharmacy.code
-        }))
+        })),
+        error: 'No pharmacy assignments found for user'
       });
     }
 
@@ -208,9 +288,16 @@ export async function GET() {
     
   } catch (error) {
     console.error('Sensors API Error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch sensor data: ' + error.message }, 
-      { status: 500 }
-    );
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
+    
+    return NextResponse.json({
+      error: 'Failed to fetch sensor data: ' + error.message,
+      timestamp: new Date().toISOString(),
+      userEmail: session?.user?.email || 'unknown'
+    }, { status: 500 });
   }
 }

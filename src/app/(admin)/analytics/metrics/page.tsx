@@ -24,8 +24,6 @@ interface MetricData {
   activeSensors: number;
   avgTemp: number;
   complianceRate: number;
-  excursionsToday: number;
-  excursionsWeek: number;
   uptimePercentage: number;
   lastReading: string;
 }
@@ -67,8 +65,6 @@ export default function MetricsPage() {
       activeSensors: Math.floor(Math.random() * 3) + 7,
       avgTemp: Math.round((Math.random() * 3 + 21) * 10) / 10,
       complianceRate: Math.round((Math.random() * 10 + 90) * 10) / 10,
-      excursionsToday: Math.floor(Math.random() * 3),
-      excursionsWeek: Math.floor(Math.random() * 8) + 2,
       uptimePercentage: Math.round((Math.random() * 5 + 95) * 10) / 10,
       lastReading: new Date(Date.now() - Math.random() * 60 * 60 * 1000).toISOString()
     }));
@@ -77,7 +73,6 @@ export default function MetricsPage() {
   const totalSensors = metrics.reduce((sum, m) => sum + m.totalSensors, 0);
   const activeSensors = metrics.reduce((sum, m) => sum + m.activeSensors, 0);
   const avgCompliance = metrics.length > 0 ? metrics.reduce((sum, m) => sum + m.complianceRate, 0) / metrics.length : 0;
-  const totalExcursions = metrics.reduce((sum, m) => sum + (selectedPeriod === 'today' ? m.excursionsToday : m.excursionsWeek), 0);
 
   return (
     <div className="space-y-6">
@@ -119,7 +114,7 @@ export default function MetricsPage() {
       </div>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center">
             <Thermometer className="h-8 w-8 text-blue-600 mr-3" />
@@ -144,19 +139,7 @@ export default function MetricsPage() {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center">
-            <AlertTriangle className="h-8 w-8 text-red-600 mr-3" />
-            <div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                {totalExcursions}
-              </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Excursions {selectedPeriod === 'today' ? 'Today' : 'This Week'}
-              </div>
-            </div>
-          </div>
-        </div>
+
 
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center">
@@ -184,7 +167,6 @@ export default function MetricsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Sensors</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Avg Temp</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Compliance</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Excursions</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Uptime</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Last Reading</th>
               </tr>
@@ -228,15 +210,7 @@ export default function MetricsPage() {
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                      (selectedPeriod === 'today' ? metric.excursionsToday : metric.excursionsWeek) === 0
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    }`}>
-                      {selectedPeriod === 'today' ? metric.excursionsToday : metric.excursionsWeek}
-                    </span>
-                  </td>
+
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                     <span className={`${metric.uptimePercentage >= 99 ? 'text-green-600' : metric.uptimePercentage >= 95 ? 'text-yellow-600' : 'text-red-600'}`}>
                       {metric.uptimePercentage}%

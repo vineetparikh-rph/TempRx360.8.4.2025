@@ -16,7 +16,9 @@ async function main() {
       email: 'admin@georgies.com',
       name: 'Admin User',
       hashedPassword,
-      role: 'ADMIN',
+      role: 'admin',
+      isApproved: true,
+      approvalStatus: 'approved',
       isActive: true,
     },
   })
@@ -33,7 +35,9 @@ async function main() {
       email: 'manager@georgies.com',
       name: 'Manager User',
       hashedPassword: managerPassword,
-      role: 'MANAGER',
+      role: 'pharmacist',
+      isApproved: true,
+      approvalStatus: 'approved',
       isActive: true,
     },
   })
@@ -50,7 +54,9 @@ async function main() {
       email: 'staff@georgies.com',
       name: 'Staff User',
       hashedPassword: staffPassword,
-      role: 'STAFF',
+      role: 'technician',
+      isApproved: true,
+      approvalStatus: 'approved',
       isActive: true,
     },
   })
@@ -59,10 +65,11 @@ async function main() {
 
   // Create a sample pharmacy
   const pharmacy = await prisma.pharmacy.upsert({
-    where: { id: 1 },
+    where: { code: 'georgies' },
     update: {},
     create: {
       name: "Georgie's Pharmacy",
+      code: 'georgies',
       address: "123 Main Street, Anytown, USA",
       phone: "(555) 123-4567",
       email: "contact@georgies.com",
@@ -84,7 +91,6 @@ async function main() {
     create: {
       userId: adminUser.id,
       pharmacyId: pharmacy.id,
-      role: 'ADMIN',
     },
   })
 
@@ -100,7 +106,6 @@ async function main() {
     create: {
       userId: managerUser.id,
       pharmacyId: pharmacy.id,
-      role: 'MANAGER',
     },
   })
 
@@ -116,7 +121,6 @@ async function main() {
     create: {
       userId: staffUser.id,
       pharmacyId: pharmacy.id,
-      role: 'STAFF',
     },
   })
 
@@ -124,30 +128,26 @@ async function main() {
 
   // Create sample sensors
   const sensor1 = await prisma.sensor.upsert({
-    where: { id: 1 },
+    where: { sensorPushId: 'sensor-1' },
     update: {},
     create: {
+      sensorPushId: 'sensor-1',
       name: 'Refrigerator Sensor 1',
-      type: 'TEMPERATURE',
-      location: 'Main Refrigerator',
+      location: 'refrigerator',
       pharmacyId: pharmacy.id,
       isActive: true,
-      batteryLevel: 85,
-      lastReading: new Date(),
     },
   })
 
   const sensor2 = await prisma.sensor.upsert({
-    where: { id: 2 },
+    where: { sensorPushId: 'sensor-2' },
     update: {},
     create: {
+      sensorPushId: 'sensor-2',
       name: 'Freezer Sensor 1',
-      type: 'TEMPERATURE',
-      location: 'Main Freezer',
+      location: 'freezer',
       pharmacyId: pharmacy.id,
       isActive: true,
-      batteryLevel: 92,
-      lastReading: new Date(),
     },
   })
 
@@ -177,7 +177,7 @@ async function main() {
     })
   }
 
-  await prisma.temperatureReading.createMany({
+  await prisma.reading.createMany({
     data: readings,
     skipDuplicates: true,
   })

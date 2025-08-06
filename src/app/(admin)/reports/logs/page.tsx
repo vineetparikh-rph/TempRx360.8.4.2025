@@ -15,7 +15,8 @@ import {
   CheckCircle,
   AlertTriangle,
   Shield,
-  BarChart3
+  BarChart3,
+  Eye
 } from 'lucide-react';
 
 interface ReportLogEntry {
@@ -50,15 +51,18 @@ export default function ReportLogsPage() {
 
   const fetchReportLogs = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await fetch('/api/reports/logs');
       if (!response.ok) {
-        throw new Error('Failed to fetch report logs');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch report logs`);
       }
       const data = await response.json();
       setLogEntries(data.logs || []);
-      setError(null);
+      console.log('Report logs loaded:', data.logs?.length || 0);
     } catch (err: any) {
+      console.error('Report logs fetch error:', err);
       setError(err.message);
       // For demo purposes, show sample data if API fails
       setLogEntries(generateSampleLogs());
@@ -109,17 +113,16 @@ export default function ReportLogsPage() {
     return entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
   };
 
-  const logs = generateSampleLogs();
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = logEntries.filter(log => {
     const matchesSearch = log.reportType.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          log.pharmacyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          log.action.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesType = typeFilter === 'all' || log.reportType === typeFilter;
-    const matchesAction = actionFilter === 'all' || log.action === actionFilter;
-    const matchesStatus = statusFilter === 'all' || log.status === statusFilter;
+    const matchesType = filterReportType === 'all' || log.reportType === filterReportType;
+    const matchesAction = filterAction === 'all' || log.action === filterAction;
+    const matchesPharmacy = filterPharmacy === 'all' || log.pharmacyName === filterPharmacy;
     
-    return matchesSearch && matchesType && matchesAction && matchesStatus;
+    return matchesSearch && matchesType && matchesAction && matchesPharmacy;
   });
 
   const getStatusColor = (status: string) => {

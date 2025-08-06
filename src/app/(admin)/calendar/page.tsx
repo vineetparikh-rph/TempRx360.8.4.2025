@@ -55,41 +55,8 @@ export default function CalendarPage() {
   };
 
   const generateSampleEvents = (): CalendarEvent[] => {
-    const pharmacies = [
-      { id: 'pharm_1', name: 'Georgies Family Pharmacy' },
-      { id: 'pharm_2', name: 'Georgies Specialty Pharmacy' },
-      { id: 'pharm_3', name: 'Georgies Parlin Pharmacy' },
-      { id: 'pharm_4', name: 'Georgies Outpatient Pharmacy' }
-    ];
-
-    const eventTypes = ['maintenance', 'calibration', 'inspection', 'training', 'meeting'] as const;
-    const statuses = ['scheduled', 'in-progress', 'completed', 'cancelled'] as const;
-    const assignees = ['John Smith', 'Sarah Johnson', 'Michael Brown', 'Lisa Davis', 'David Wilson'];
-
-    const events: CalendarEvent[] = [];
-    const startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-
-    for (let i = 0; i < 20; i++) {
-      const randomDate = new Date(startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime()));
-      const pharmacy = pharmacies[Math.floor(Math.random() * pharmacies.length)];
-      const eventType = eventTypes[Math.floor(Math.random() * eventTypes.length)];
-      
-      events.push({
-        id: `event_${i}`,
-        title: getEventTitle(eventType),
-        description: getEventDescription(eventType),
-        date: randomDate.toISOString().split('T')[0],
-        time: `${Math.floor(Math.random() * 12) + 8}:${Math.random() > 0.5 ? '00' : '30'}`,
-        type: eventType,
-        pharmacyName: pharmacy.name,
-        pharmacyId: pharmacy.id,
-        assignedTo: assignees[Math.floor(Math.random() * assignees.length)],
-        status: statuses[Math.floor(Math.random() * statuses.length)]
-      });
-    }
-
-    return events.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    // Return empty array - no sample events
+    return [];
   };
 
   const getEventTitle = (type: string): string => {

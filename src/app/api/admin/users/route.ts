@@ -10,7 +10,7 @@ export async function GET() {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
@@ -18,7 +18,16 @@ export async function GET() {
       include: {
         userPharmacies: {
           include: {
-            pharmacy: true
+            pharmacy: {
+              select: {
+                id: true,
+                name: true,
+                address: true,
+                city: true,
+                state: true,
+                zipCode: true
+              }
+            }
           }
         }
       },
@@ -29,8 +38,19 @@ export async function GET() {
       orderBy: { name: 'asc' }
     });
 
+    // Transform users data to match UI expectations
+    const transformedUsers = users.map(user => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      isActive: user.isActive !== undefined ? user.isActive : (user.isApproved || true), // Default to true or use approval status
+      createdAt: user.createdAt.toISOString(),
+      pharmacies: user.userPharmacies.map(up => up.pharmacy)
+    }));
+
     return NextResponse.json({
-      users,
+      users: transformedUsers,
       pharmacies,
       totalCount: users.length
     });
@@ -49,7 +69,7 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
@@ -86,16 +106,50 @@ export async function POST(request: Request) {
       }
     });
 
-    // Create pharmacy assignments if provided
-    if (data.pharmacyIds && data.pharmacyIds.length > 0) {
-      const pharmacyAssignments = data.pharmacyIds.map((pharmacyId: string) => ({
-        userId: user.id,
-        pharmacyId: pharmacyId
-      }));
+    // Create pharmacy assignments
+    let pharmacyIds = data.pharmacyIds || [];
+    
+    // Handle single pharmacyId from form
+    if (data.pharmacyId && !pharmacyIds.includes(data.pharmacyId)) {
+      pharmacyIds = [data.pharmacyId];
+    }
+    
+    console.log('User creation - pharmacyIds:', pharmacyIds, 'data.pharmacyId:', data.pharmacyId);
+    
+    // If no pharmacies specified, assign to default pharmacy
+    if (pharmacyIds.length === 0) {
+      try {
+        // Try to find a default pharmacy or use the first available one
+        const defaultPharmacy = await prisma.pharmacy.findFirst({
+          orderBy: { name: 'asc' }
+        });
+        
+        if (defaultPharmacy) {
+          pharmacyIds = [defaultPharmacy.id];
+        }
+      } catch (error) {
+        console.log('Could not assign default pharmacy:', error);
+        // Continue without pharmacy assignment if database fails
+      }
+    }
 
-      await prisma.userPharmacy.createMany({
-        data: pharmacyAssignments
-      });
+    // Create pharmacy assignments if we have any
+    if (pharmacyIds.length > 0) {
+      try {
+        const pharmacyAssignments = pharmacyIds.map((pharmacyId: string) => ({
+          userId: user.id,
+          pharmacyId: pharmacyId
+        }));
+
+        await prisma.userPharmacy.createMany({
+          data: pharmacyAssignments
+        });
+        
+        console.log('Successfully created pharmacy assignments:', pharmacyAssignments);
+      } catch (error) {
+        console.log('Could not create pharmacy assignments:', error);
+        // Continue even if pharmacy assignment fails
+      }
     }
 
     // Log the creation
@@ -135,7 +189,7 @@ export async function PUT(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 
@@ -218,7 +272,7 @@ export async function DELETE(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     
-    if (!session?.user || session.user.role !== 'admin') {
+    if (!session?.user || (session.user.role !== 'admin' && session.user.role !== 'ADMIN')) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
     }
 

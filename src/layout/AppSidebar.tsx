@@ -35,6 +35,7 @@ interface MenuItem {
   icon: React.ReactNode;
   badge?: string;
   children?: MenuItem[];
+  adminOnly?: boolean; // New field for admin-only items
 }
 
 export default function AppSidebar() {
@@ -54,7 +55,7 @@ export default function AppSidebar() {
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/');
 
   const menuItems: MenuItem[] = [
-    // 📊 MONITORING (Core functionality)
+    // 📊 MONITORING (Available to ALL users)
     {
       title: 'Monitoring',
       icon: <BarChart3 className="h-5 w-5" />,
@@ -69,8 +70,7 @@ export default function AppSidebar() {
           icon: <AlertTriangle className="h-4 w-4" />,
           children: [
             { title: 'Active Alerts', href: '/alerts', icon: <Bell className="h-4 w-4" /> },
-            { title: 'Alert History', href: '/alerts/history', icon: <History className="h-4 w-4" /> },
-            { title: 'Alert Settings', href: '/alerts/settings', icon: <Settings className="h-4 w-4" /> }
+            { title: 'Alert History', href: '/alerts/history', icon: <History className="h-4 w-4" /> }
           ]
         },
         {
@@ -78,8 +78,7 @@ export default function AppSidebar() {
           icon: <FileCheck className="h-4 w-4" />,
           children: [
             { title: 'Current Policies', href: '/policies', icon: <FileCheck className="h-4 w-4" /> },
-            { title: 'Policy History', href: '/policies/history', icon: <History className="h-4 w-4" /> },
-            { title: 'Add Policy', href: '/policies/add', icon: <Plus className="h-4 w-4" /> }
+            { title: 'Policy History', href: '/policies/history', icon: <History className="h-4 w-4" /> }
           ]
         },
         {
@@ -88,8 +87,7 @@ export default function AppSidebar() {
           children: [
             { title: 'Daily Reports', href: '/reports/daily', icon: <Calendar className="h-4 w-4" /> },
             { title: 'Compliance Reports', href: '/reports/compliance', icon: <FileCheck className="h-4 w-4" /> },
-            { title: 'Report Logs', href: '/reports/logs', icon: <History className="h-4 w-4" /> },
-            { title: 'Export Reports', href: '/reports/export', icon: <Download className="h-4 w-4" /> }
+            { title: 'Report Logs', href: '/reports/logs', icon: <History className="h-4 w-4" /> }
           ]
         },
         {
@@ -103,106 +101,98 @@ export default function AppSidebar() {
       ]
     },
 
-    // 🔧 ADMIN TOOLS (Hardware & System)
+    // 🏥 PHARMACY MANAGEMENT (Admin Only)
     {
-      title: 'Admin Tools',
-      icon: <Settings className="h-5 w-5" />,
+      title: 'Pharmacy Management',
+      icon: <Building2 className="h-5 w-5" />,
+      adminOnly: true,
       children: [
-        {
-          title: 'System Management',
-          icon: <Database className="h-4 w-4" />,
-          children: [
-            { title: 'Sensor Assignment', href: '/admin/sensors/manage', icon: <Thermometer className="h-4 w-4" /> },
-            { title: 'Pharmacy Management', href: '/admin/pharmacies', icon: <Building2 className="h-4 w-4" /> }
-          ]
-        },
-        {
-          title: 'Hardware',
-          icon: <HardDrive className="h-4 w-4" />,
-          children: [
-            { title: 'All Sensors', href: '/sensors', icon: <Thermometer className="h-4 w-4" /> },
-            { title: 'Add Sensor', href: '/sensors/add', icon: <Plus className="h-4 w-4" /> },
-            { title: 'Sensor Status', href: '/sensors/status', icon: <CheckCircle className="h-4 w-4" /> },
-            { title: 'Hubs & Gateways', href: '/admin/hubs', icon: <Cpu className="h-4 w-4" /> }
-          ]
-        }
+        { title: 'All Pharmacies', href: '/admin/pharmacies', icon: <Building2 className="h-4 w-4" /> },
+        { title: 'Add Pharmacy', href: '/admin/pharmacies/add', icon: <Plus className="h-4 w-4" /> },
+        { title: 'Pharmacy Settings', href: '/admin/pharmacies/settings', icon: <Settings className="h-4 w-4" /> },
+        { title: 'Location Management', href: '/admin/pharmacies/locations', icon: <Building2 className="h-4 w-4" /> }
       ]
     },
 
-    // ⚙️ ADMINISTRATION (Users & Settings)
+    // 🔌 HUB MANAGEMENT (Admin Only)
     {
-      title: 'Administration',
-      icon: <Shield className="h-5 w-5" />,
+      title: 'Hub Management',
+      icon: <Cpu className="h-5 w-5" />,
+      adminOnly: true,
       children: [
-        {
-          title: 'User Management',
-          icon: <Users className="h-4 w-4" />,
-          children: [
-            { title: 'User Approvals', href: '/admin/user-approvals', icon: <CheckCircle className="h-4 w-4" /> },
-            { title: 'All Users', href: '/admin/analytics/users', icon: <Users className="h-4 w-4" /> },
-            { title: 'Add User', href: '/admin/users/add', icon: <UserPlus className="h-4 w-4" /> },
-            { title: 'User Profiles', href: '/profile', icon: <User className="h-4 w-4" /> }
-          ]
-        },
-        {
-          title: 'Settings',
-          icon: <Settings className="h-4 w-4" />,
-          children: [
-            { title: 'Temperature Thresholds', href: '/admin/settings/thresholds', icon: <Thermometer className="h-4 w-4" /> },
-            { title: 'Notifications', href: '/admin/settings/notifications', icon: <Bell className="h-4 w-4" /> },
-            { title: 'System Settings', href: '/admin/settings/system', icon: <Settings className="h-4 w-4" /> }
-          ]
-        },
-        { title: 'Calendar & Schedule', href: '/calendar', icon: <Calendar className="h-4 w-4" /> }
+        { title: 'All Hubs & Gateways', href: '/admin/hubs', icon: <Cpu className="h-4 w-4" /> },
+        { title: 'Add Hub', href: '/admin/hubs/add', icon: <Plus className="h-4 w-4" /> },
+        { title: 'Hub Status', href: '/admin/hubs/status', icon: <CheckCircle className="h-4 w-4" /> },
+        { title: 'Network Configuration', href: '/admin/hubs/network', icon: <Settings className="h-4 w-4" /> }
       ]
     },
 
-    // 🗄️ DATABASE ADMINISTRATION (Direct Prisma Access)
+    // 🌡️ SENSOR MANAGEMENT (Admin Only)
     {
-      title: 'Database Admin',
-      icon: <Database className="h-5 w-5" />,
+      title: 'Sensor Management',
+      icon: <Thermometer className="h-5 w-5" />,
+      adminOnly: true,
       children: [
-        { title: 'Database Tables', href: '/database', icon: <Database className="h-4 w-4" /> },
-        { title: 'Raw SQL Query', href: '/database/query', icon: <FileText className="h-4 w-4" /> },
-        { title: 'Schema Browser', href: '/database/schema', icon: <Settings className="h-4 w-4" /> }
+        { title: 'All Sensors', href: '/sensors', icon: <Thermometer className="h-4 w-4" /> },
+        { title: 'Add Sensor', href: '/sensors/add', icon: <Plus className="h-4 w-4" /> },
+        { title: 'Sensor Status', href: '/sensors/status', icon: <CheckCircle className="h-4 w-4" /> },
+        { title: 'Sensor Assignment', href: '/admin/sensors/manage', icon: <Settings className="h-4 w-4" /> },
+        { title: 'Calibration', href: '/admin/sensors/calibration', icon: <Settings className="h-4 w-4" /> }
       ]
     },
 
-    // 🎨 LAYOUT (Design & Development)
+    // 👥 USER MANAGEMENT (Admin Only)
     {
-      title: 'Layout',
-      icon: <FileText className="h-5 w-5" />,
+      title: 'User Management',
+      icon: <Users className="h-5 w-5" />,
+      adminOnly: true,
       children: [
-        {
-          title: 'Tables',
-          icon: <Database className="h-4 w-4" />,
-          children: [
-            { title: 'Basic Tables', href: '/basic-tables', icon: <Database className="h-4 w-4" /> }
-          ]
-        },
-        {
-          title: 'Charts',
-          icon: <BarChart3 className="h-4 w-4" />,
-          children: [
-            { title: 'Line Charts', href: '/line-chart', icon: <TrendingUp className="h-4 w-4" /> },
-            { title: 'Bar Charts', href: '/bar-chart', icon: <BarChart3 className="h-4 w-4" /> }
-          ]
-        },
-        {
-          title: 'UI Elements',
-          icon: <Settings className="h-4 w-4" />,
-          children: [
-            { title: 'Alerts', href: '/alerts', icon: <AlertTriangle className="h-4 w-4" /> },
-            { title: 'Avatars', href: '/avatars', icon: <User className="h-4 w-4" /> },
-            { title: 'Badges', href: '/badge', icon: <CheckCircle className="h-4 w-4" /> },
-            { title: 'Buttons', href: '/buttons', icon: <Plus className="h-4 w-4" /> },
-            { title: 'Images', href: '/images', icon: <FileText className="h-4 w-4" /> },
-            { title: 'Videos', href: '/videos', icon: <FileText className="h-4 w-4" /> }
-          ]
-        }
+        { title: 'Manage Users', href: '/admin/users/manage', icon: <Users className="h-4 w-4" /> },
+        { title: 'Quick Fix User', href: '/admin/users/quick-fix', icon: <CheckCircle className="h-4 w-4" /> },
+        { title: 'All Users', href: '/admin/analytics/users', icon: <Users className="h-4 w-4" /> },
+        { title: 'Add User', href: '/admin/users/add', icon: <UserPlus className="h-4 w-4" /> },
+        { title: 'User Roles & Permissions', href: '/admin/users/roles', icon: <Shield className="h-4 w-4" /> },
+        { title: 'User Approvals', href: '/admin/user-approvals', icon: <CheckCircle className="h-4 w-4" /> },
+        { title: 'Fix All Users', href: '/admin/fix-all-users', icon: <Settings className="h-4 w-4" /> },
+        { title: 'System Settings', href: '/admin/settings/system', icon: <Settings className="h-4 w-4" /> }
       ]
     }
   ];
+
+  // Filter menu items based on user role
+  const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'ADMIN';
+
+  const filterMenuItems = (items: MenuItem[]): MenuItem[] => {
+    return items.filter(item => {
+      // If item is admin-only and user is not admin, hide it
+      if (item.adminOnly && !isAdmin) {
+        return false;
+      }
+
+      // If item has children, filter them recursively
+      if (item.children) {
+        const originalChildren = [...item.children];
+        item.children = filterMenuItems(item.children);
+        
+        // If all children are filtered out and this is not an admin-only parent, 
+        // still show the parent but with no children
+        if (item.children.length === 0) {
+          // If the parent itself is admin-only, hide it completely
+          if (item.adminOnly) {
+            return false;
+          }
+          // If parent is not admin-only but all children are filtered out,
+          // we might want to hide it too (optional behavior)
+          // For now, let's hide parents with no visible children
+          return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
+  const filteredMenuItems = filterMenuItems([...menuItems]);
 
   const renderMenuItem = (item: MenuItem, level = 0) => {
     const hasChildren = item.children && item.children.length > 0;
@@ -263,24 +253,36 @@ export default function AppSidebar() {
           <Thermometer className="h-8 w-8 text-blue-600" />
           <div className="flex flex-col">
             <span className="text-xl font-bold text-gray-900 dark:text-white">TempRx360</span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">Admin Dashboard</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">
+              {isAdmin ? 'Admin Dashboard' : 'Pharmacy User'}
+            </span>
           </div>
         </Link>
       </div>
       
       <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
         <ul className="space-y-2">
-          {menuItems.map((item) => renderMenuItem(item))}
+          {filteredMenuItems.map((item) => renderMenuItem(item))}
         </ul>
       </nav>
       
       <div className="p-4 border-t border-gray-200 dark:border-gray-800">
         <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center dark:bg-blue-900/20">
-            <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            isAdmin 
+              ? 'bg-blue-100 dark:bg-blue-900/20' 
+              : 'bg-green-100 dark:bg-green-900/20'
+          }`}>
+            {isAdmin ? (
+              <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            ) : (
+              <Building2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+            )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">Admin Panel</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              {isAdmin ? 'Admin Panel' : 'Pharmacy User'}
+            </p>
             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{session?.user?.email}</p>
           </div>
         </div>

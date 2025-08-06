@@ -25,15 +25,15 @@ interface Hub {
   serialNumber: string;
   model: string;
   pharmacyName: string;
-  pharmacyId: string;
-  status: 'online' | 'offline' | 'maintenance' | 'error';
+  pharmacyId: string | null;
+  status: 'online' | 'offline' | 'maintenance' | 'error' | 'warning';
   lastSeen: string;
   signalStrength: number;
-  batteryLevel: number;
+  batteryLevel: number | null;
   connectedSensors: number;
   maxSensors: number;
   firmwareVersion: string;
-  ipAddress: string;
+  ipAddress: string | null;
   location: string;
 }
 
@@ -55,14 +55,15 @@ export default function AllHubsPage() {
       const response = await fetch('/api/admin/hubs');
       if (response.ok) {
         const data = await response.json();
+        console.log('Real hub data received:', data);
         setHubs(data.hubs || []);
       } else {
-        // Fallback to sample data
-        setHubs(generateSampleHubs());
+        console.error('Failed to fetch hubs:', response.status, response.statusText);
+        setHubs([]);
       }
     } catch (error) {
       console.error('Failed to fetch hubs:', error);
-      setHubs(generateSampleHubs());
+      setHubs([]);
     } finally {
       setLoading(false);
     }
@@ -115,6 +116,7 @@ export default function AllHubsPage() {
     switch(status) {
       case 'online': return 'bg-green-100 text-green-800 border-green-200';
       case 'offline': return 'bg-red-100 text-red-800 border-red-200';
+      case 'warning': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'maintenance': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'error': return 'bg-red-100 text-red-800 border-red-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -125,6 +127,7 @@ export default function AllHubsPage() {
     switch(status) {
       case 'online': return <CheckCircle className="h-4 w-4 text-green-600" />;
       case 'offline': return <XCircle className="h-4 w-4 text-red-600" />;
+      case 'warning': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       case 'maintenance': return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       case 'error': return <XCircle className="h-4 w-4 text-red-600" />;
       default: return <CheckCircle className="h-4 w-4 text-gray-600" />;
@@ -137,7 +140,8 @@ export default function AllHubsPage() {
     return <Wifi className="h-4 w-4 text-red-600" />;
   };
 
-  const getBatteryColor = (level: number) => {
+  const getBatteryColor = (level: number | null) => {
+    if (level === null) return 'text-gray-400';
     if (level >= 80) return 'text-green-600';
     if (level >= 40) return 'text-yellow-600';
     return 'text-red-600';
@@ -234,6 +238,7 @@ export default function AllHubsPage() {
               <option value="all">All Status</option>
               <option value="online">Online</option>
               <option value="offline">Offline</option>
+              <option value="warning">Warning</option>
               <option value="maintenance">Maintenance</option>
               <option value="error">Error</option>
             </select>
@@ -336,7 +341,7 @@ export default function AllHubsPage() {
                         <div className="flex items-center">
                           <Battery className={`h-4 w-4 mr-1 ${getBatteryColor(hub.batteryLevel)}`} />
                           <span className={`text-xs ${getBatteryColor(hub.batteryLevel)}`}>
-                            {hub.batteryLevel}%
+                            {hub.batteryLevel !== null ? `${hub.batteryLevel}%` : 'N/A'}
                           </span>
                         </div>
                       </div>

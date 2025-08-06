@@ -33,7 +33,6 @@ interface DailyReportData {
   minTemp: number;
   maxTemp: number;
   averageHumidity: number;
-  excursions: number;
   complianceRate: number;
   sensorsActive: number;
   sensorsTotal: number;
@@ -222,7 +221,6 @@ export default function DailyReportsPage() {
         minTemp: Math.round((Math.random() * 3 + 18) * 10) / 10,
         maxTemp: Math.round((Math.random() * 3 + 23) * 10) / 10,
         averageHumidity: Math.round((Math.random() * 20 + 40) * 10) / 10,
-        excursions: Math.floor(Math.random() * 3),
         complianceRate: Math.round((Math.random() * 10 + 90) * 10) / 10,
         sensorsActive: Math.floor(Math.random() * 3) + 8,
         sensorsTotal: 10,
@@ -496,7 +494,7 @@ export default function DailyReportsPage() {
       {reportData.length > 0 && (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center">
                 <Thermometer className="h-8 w-8 text-blue-600 mr-3" />
@@ -521,17 +519,7 @@ export default function DailyReportsPage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-              <div className="flex items-center">
-                <AlertTriangle className="h-8 w-8 text-red-600 mr-3" />
-                <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {reportData.reduce((sum, r) => sum + r.excursions, 0)}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Total Excursions</div>
-                </div>
-              </div>
-            </div>
+
 
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center">

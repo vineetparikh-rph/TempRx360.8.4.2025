@@ -44,7 +44,6 @@ interface ComplianceReportData {
     sensorCount: number;
   };
   dailyCompliance: number;
-  excursions: number;
   notes?: string;
 }
 
@@ -209,8 +208,7 @@ export default function ComplianceReportsPage() {
       const eveningStatus = eveningTemp >= 20 && eveningTemp <= 25 ? 'compliant' :
                            eveningTemp >= 18 && eveningTemp <= 27 ? 'warning' : 'critical';
 
-      const excursions = Math.floor(Math.random() * 2);
-      const dailyCompliance = morningStatus === 'compliant' && eveningStatus === 'compliant' && excursions === 0 ? 100 :
+      const dailyCompliance = morningStatus === 'compliant' && eveningStatus === 'compliant' ? 100 :
                              morningStatus !== 'critical' && eveningStatus !== 'critical' ? 85 : 60;
 
       reports.push({
@@ -231,8 +229,7 @@ export default function ComplianceReportsPage() {
           sensorCount: Math.floor(Math.random() * 3) + 8
         },
         dailyCompliance,
-        excursions,
-        notes: excursions > 0 ? 'Temperature excursion detected during day' : undefined
+        notes: Math.random() > 0.8 ? 'All readings within acceptable range' : undefined
       });
     }
 
@@ -500,7 +497,7 @@ export default function ComplianceReportsPage() {
       {reportData.length > 0 && (
         <>
           {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center">
                 <CheckCircle className="h-8 w-8 text-green-600 mr-3" />
@@ -525,17 +522,7 @@ export default function ComplianceReportsPage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-              <div className="flex items-center">
-                <AlertTriangle className="h-8 w-8 text-red-600 mr-3" />
-                <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {reportData.reduce((sum, r) => sum + r.excursions, 0)}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Total Excursions</div>
-                </div>
-              </div>
-            </div>
+
 
             <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               <div className="flex items-center">

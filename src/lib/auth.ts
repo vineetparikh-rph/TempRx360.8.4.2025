@@ -1,14 +1,13 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
-import { PrismaClient } from "@prisma/client"
 import bcrypt from "bcryptjs"
 
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 export const authOptions: NextAuthOptions = {
   session: {
     strategy: "jwt",
-    maxAge: 30 * 60, // 30 minutes
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   providers: [
     CredentialsProvider({
@@ -18,10 +17,14 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        console.log('🔍 Starting authorization process...')
+        
         if (!credentials?.email || !credentials?.password) {
           console.log('🚫 Missing credentials')
           return null
         }
+
+        console.log('📧 Email provided:', credentials.email)
 
         try {
           console.log('🔍 Attempting login for:', credentials.email)
@@ -76,7 +79,8 @@ export const authOptions: NextAuthOptions = {
             name: user.name,
             role: user.role,
             pharmacies: pharmacies,
-            mustChangePassword: false // Default to false since field doesn't exist in schema
+            isApproved: user.isApproved,
+            mustChangePassword: user.mustChangePassword || false
           }
         } catch (error) {
           console.error('Auth error:', error)
@@ -90,6 +94,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.role = user.role
         token.pharmacies = user.pharmacies
+        token.isApproved = user.isApproved
         token.mustChangePassword = user.mustChangePassword
       }
       return token
@@ -99,6 +104,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub!
         session.user.role = token.role as string
         session.user.pharmacies = token.pharmacies as any[]
+        session.user.isApproved = token.isApproved as boolean
         session.user.mustChangePassword = token.mustChangePassword as boolean
       }
       return session

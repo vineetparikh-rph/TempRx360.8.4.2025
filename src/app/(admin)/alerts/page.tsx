@@ -56,6 +56,7 @@ export default function ActiveAlertsPage() {
 
   const fetchAlerts = async () => {
     setLoading(true);
+    setError(null);
     try {
       const params = new URLSearchParams();
       if (filter === 'active') params.append('resolved', 'false');
@@ -64,14 +65,17 @@ export default function ActiveAlertsPage() {
 
       const response = await fetch(`/api/alerts?${params.toString()}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch alerts');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: Failed to fetch alerts`);
       }
 
       const data = await response.json();
-      setAlerts(data.alerts);
-      setError(null);
+      setAlerts(data.alerts || []);
+      console.log('Alerts loaded:', data.alerts?.length || 0);
     } catch (err: any) {
+      console.error('Alerts fetch error:', err);
       setError(err.message);
+      setAlerts([]); // Set empty array as fallback
     } finally {
       setLoading(false);
     }

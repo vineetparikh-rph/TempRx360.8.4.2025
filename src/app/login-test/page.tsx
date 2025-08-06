@@ -48,13 +48,23 @@ export default function LoginTestPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ 
+          email: email.toLowerCase().trim(), 
+          password 
+        }),
       });
 
       const data = await response.json();
       console.log('🔐 Actual login response:', data);
+      console.log('🔐 Response status:', response.status);
+      console.log('🔐 Response headers:', Object.fromEntries(response.headers.entries()));
       
-      setResult(JSON.stringify(data, null, 2));
+      setResult(JSON.stringify({
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        data: data
+      }, null, 2));
       
     } catch (error) {
       console.error('🔐 Actual login error:', error);

@@ -135,21 +135,7 @@ export default function WorkingSignInForm() {
             </p>
           </div>
 
-          {/* Test Credentials Info */}
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md dark:bg-blue-900/20 dark:border-blue-800">
-            <h3 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">Available Login Credentials:</h3>
-            <div className="text-xs text-blue-800 dark:text-blue-200 space-y-1 max-h-32 overflow-y-auto">
-              <div><strong>Admin:</strong> admin@georgiesrx.com / admin123</div>
-              <div><strong>Manager:</strong> manager@georgiesrx.com / manager123</div>
-              <div><strong>Staff:</strong> staff@georgiesrx.com / staff123</div>
-              <div><strong>IT Admin:</strong> itadmin@georgiesrx.com / admin123</div>
-              <div><strong>Family Pharmacy:</strong> familyrx@stgeorgesrx.com / pharmacy123</div>
-              <div><strong>Parlin Pharmacy:</strong> parlinrx@gmail.com / pharmacy123</div>
-              <div><strong>Specialty Pharmacy:</strong> specialtyrx@stgeorgiesrx.com / pharmacy123</div>
-              <div><strong>Vineet:</strong> vinitbparikh@gmail.com / pharmacy123</div>
-              <div><strong>Rose:</strong> Rose@georgiesrx.com / pharmacy123</div>
-            </div>
-          </div>
+
 
           <div>
             <form onSubmit={handleSubmit} autoComplete="new-password" data-lpignore="true" data-form-type="other">

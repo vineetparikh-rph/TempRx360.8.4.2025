@@ -74,6 +74,37 @@ export default function LoginTestPage() {
     }
   };
 
+  const checkPassword = async () => {
+    setLoading(true);
+    setResult('Checking password details...');
+
+    try {
+      console.log('🔍 Checking password for:', { email, password });
+      
+      const response = await fetch('/api/check-user-passwords', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          email: email.toLowerCase().trim(), 
+          password 
+        }),
+      });
+
+      const data = await response.json();
+      console.log('🔍 Password check response:', data);
+      
+      setResult(JSON.stringify(data, null, 2));
+      
+    } catch (error) {
+      console.error('🔍 Password check error:', error);
+      setResult(`Error: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4">
       <div className="max-w-2xl mx-auto">
@@ -117,6 +148,14 @@ export default function LoginTestPage() {
               className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 disabled:opacity-50"
             >
               {loading ? 'Testing...' : 'Test Actual Login'}
+            </button>
+            
+            <button
+              onClick={checkPassword}
+              disabled={loading}
+              className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 disabled:opacity-50"
+            >
+              {loading ? 'Testing...' : 'Check Password'}
             </button>
           </div>
 

@@ -51,7 +51,7 @@ interface Pharmacy {
 }
 
 export default function TemperatureMonitoringPage() {
-  const { data: session, status } = useSession();
+  const { user, isLoaded } = useUser();
   const [pharmacies, setPharmacies] = useState<Pharmacy[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,25 +62,25 @@ export default function TemperatureMonitoringPage() {
   const [sensorsResponse, setSensorsResponse] = useState<any>(null);
 
   useEffect(() => {
-    if (status === "loading") return; // Still loading
+    if (!isLoaded) return; // Still loading
     
-    if (!session) {
+    if (!user) {
       // Redirect to sign in if not authenticated
-      window.location.href = '/signin';
+      window.location.href = '/sign-in';
       return;
     }
     
     // Only fetch data if authenticated
     fetchRealSensorData();
-  }, [session, status]);
+  }, [user, isLoaded]);
 
   // Show loading while checking auth
-  if (status === "loading") {
+  if (!isLoaded) {
     return <div className="flex justify-center items-center h-64">Loading...</div>;
   }
 
   // Show sign in prompt if not authenticated
-  if (!session) {
+  if (!user) {
     return <div className="flex justify-center items-center h-64">Redirecting to sign in...</div>;
   }
 

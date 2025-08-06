@@ -24,28 +24,51 @@ export default function WorkingSignInForm() {
     setError('');
     setSuccess('');
 
+    // Prevent browser password breach notifications
+    if (window.navigator && window.navigator.credentials) {
+      try {
+        // Disable credential management temporarily
+        window.navigator.credentials.preventSilentAccess?.();
+      } catch (err) {
+        // Ignore errors
+      }
+    }
+
     try {
+      console.log('🔐 Attempting login for:', email);
+      
       const response = await fetch('/api/manual-signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
+          email: email.toLowerCase().trim(),
           password,
         }),
       });
 
       const data = await response.json();
+      console.log('📊 Login response:', data);
 
       if (data.success) {
         setSuccess(`Welcome back, ${data.user.name}! Redirecting...`);
-        // Immediate redirect to dashboard
-        window.location.href = '/';
+        
+        // Multiple redirect strategies
+        setTimeout(() => {
+          try {
+            window.location.replace('/');
+          } catch (err) {
+            window.location.href = '/';
+          }
+        }, 1000);
+        
       } else {
         setError(data.error || 'Login failed');
+        console.error('❌ Login failed:', data.error);
       }
     } catch (err) {
+      console.error('❌ Network error:', err);
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
@@ -91,18 +114,20 @@ export default function WorkingSignInForm() {
           </div>
 
           <div>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} autoComplete="off" data-lpignore="true">
               <div className="space-y-6">
                 <div>
                   <Label>
                     Email <span className="text-error-500">*</span>{" "}
                   </Label>
                   <Input 
-                    placeholder="admin@georgies.com" 
+                    placeholder="admin@georgiesrx.com" 
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    autoComplete="username"
+                    data-lpignore="true"
                   />
                 </div>
                 <div>
@@ -116,6 +141,9 @@ export default function WorkingSignInForm() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
+                      autoComplete="current-password"
+                      data-lpignore="true"
+                      data-form-type="other"
                     />
                     <span
                       onClick={() => setShowPassword(!showPassword)}

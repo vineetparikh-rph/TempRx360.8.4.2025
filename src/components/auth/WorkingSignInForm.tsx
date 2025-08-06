@@ -7,6 +7,7 @@ import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 
 export default function WorkingSignInForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -64,41 +65,31 @@ export default function WorkingSignInForm() {
     }
 
     try {
-      console.log('🔐 Attempting login for:', email);
+      console.log('🔐 Attempting NextAuth login for:', email);
       
-      const response = await fetch('/api/manual-signin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: email.toLowerCase().trim(),
-          password,
-        }),
+      const result = await signIn('credentials', {
+        email: email.toLowerCase().trim(),
+        password,
+        redirect: false,
       });
 
-      const data = await response.json();
-      console.log('📊 Login response:', data);
+      console.log('📊 NextAuth login result:', result);
 
-      if (data.success) {
-        setSuccess(`Welcome back, ${data.user.name}! Redirecting...`);
+      if (result?.ok) {
+        setSuccess(`Login successful! Redirecting to dashboard...`);
         
-        // Multiple redirect strategies
+        // Redirect to dashboard
         setTimeout(() => {
-          try {
-            window.location.replace('/');
-          } catch (err) {
-            window.location.href = '/';
-          }
+          router.push('/');
         }, 1000);
         
       } else {
-        setError(data.error || 'Login failed');
-        console.error('❌ Login failed:', data.error);
+        setError(result?.error || 'Invalid credentials');
+        console.error('❌ NextAuth login failed:', result?.error);
       }
     } catch (err) {
-      console.error('❌ Network error:', err);
-      setError('Network error. Please try again.');
+      console.error('❌ NextAuth error:', err);
+      setError('Login error. Please try again.');
     } finally {
       setLoading(false);
     }

@@ -29,9 +29,9 @@ export const authOptions: NextAuthOptions = {
         try {
           console.log('🔍 Attempting login for:', credentials.email)
           
-          // Find user in database
+          // Find user in database (case-insensitive)
           const user = await prisma.user.findUnique({
-            where: { email: credentials.email },
+            where: { email: credentials.email.toLowerCase().trim() },
             include: {
               userPharmacies: {
                 include: { pharmacy: true }

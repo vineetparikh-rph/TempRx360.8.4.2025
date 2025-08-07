@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 
 // Helper functions to generate realistic sensor values (same as in sensors API)
 function generateRealisticBattery(sensorId: string): number {

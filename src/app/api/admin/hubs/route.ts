@@ -2,7 +2,7 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { prisma } from '@/lib/prisma';
+import prisma from '@/lib/prisma';
 import { sensorPushAPI } from '@/lib/sensorpush-api';
 
 // Helper functions to generate realistic hub values

@@ -1,41 +1,34 @@
-import { PrismaClient } from '@prisma/client'
-import { PrismaNeon } from '@prisma/adapter-neon'
-import { neonConfig } from '@neondatabase/serverless'
-import ws from 'ws'
+import { PrismaClient } from '@prisma/client';
+import { NeonHttpDriver } from '@prisma/adapter-neon';
+import { Pool } from '@neondatabase/serverless';
 
-// Configure Neon for serverless environments
-neonConfig.webSocketConstructor = ws
+// Use DATABASE_URL from environment (Vercel-Neon integration provides this)
+const connectionString = process.env.DATABASE_URL || process.env.NEON_DATABASE_URL;
 
-// For edge environments (Vercel Edge Functions), enable querying over fetch
-if (process.env.VERCEL_ENV === 'production') {
-  neonConfig.poolQueryViaFetch = true
+if (!connectionString) {
+  throw new Error('DATABASE_URL or NEON_DATABASE_URL environment variable is not set');
 }
 
-// Global Prisma instance for development
+// Create Neon connection pool
+const pool = new Pool({ connectionString });
+
+// Create Neon HTTP driver for serverless optimization
+const driver = new NeonHttpDriver({ pool });
+
+// Global Prisma instance for development hot reloading
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
-}
+  prisma: PrismaClient | undefined;
+};
 
-// Create Prisma client with Neon adapter for optimal serverless performance
-function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL
-  
-  if (!connectionString) {
-    throw new Error('DATABASE_URL environment variable is not set')
-  }
-
-  // Use Neon adapter for better serverless performance
-  const adapter = new PrismaNeon({ connectionString })
-  
-  return new PrismaClient({ 
-    adapter,
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
-  })
-}
-
-export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+// Create Prisma client with Neon adapter
+const prisma = globalForPrisma.prisma ?? new PrismaClient({ 
+  adapter: driver,
+  log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error']
+});
 
 // Prevent multiple instances in development
 if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma
+  globalForPrisma.prisma = prisma;
 }
+
+export default prisma;

@@ -199,6 +199,7 @@ For support and questions:
 - SensorPush API integration
 - Next.js and React community
 - Tailwind CSS framework
+- Vineet Parikh, PharmD
 
 ---
 
